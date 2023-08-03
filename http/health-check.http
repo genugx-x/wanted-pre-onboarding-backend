@@ -1,0 +1,6 @@
+
+### 동작 테스트
+GET http://localhost:8080
+Accept: application/json
+
+###
