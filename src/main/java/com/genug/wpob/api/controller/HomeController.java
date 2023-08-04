@@ -1,4 +1,4 @@
-package com.genug.wpob.api;
+package com.genug.wpob.api.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
