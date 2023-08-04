@@ -1,0 +1,11 @@
+### 로그인 요청
+
+POST http://localhost:8080/auth/signup
+Content-Type: application/json
+
+{
+  "email": "test@test.com",
+  "password": "12341234"
+}
+
+###
