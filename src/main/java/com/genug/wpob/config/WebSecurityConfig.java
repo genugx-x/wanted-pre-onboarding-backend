@@ -1,5 +1,8 @@
 package com.genug.wpob.config;
 
+import com.genug.wpob.security.TokenProvider;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -32,5 +35,12 @@ public class WebSecurityConfig {
                 1,
                 32,
                 64);
+    }
+
+    @Bean
+    public TokenProvider tokenProvider() {
+        return TokenProvider.builder()
+                .secretKey(Keys.secretKeyFor(SignatureAlgorithm.HS256))
+                .build();
     }
 }
