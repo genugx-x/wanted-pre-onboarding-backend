@@ -10,16 +10,16 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
-    @PostMapping
-    public ResponseEntity<?> signUp(@RequestBody @Valid SignUp request) {
+    @PostMapping("/signup")
+    public ResponseEntity<?> signUp(@RequestBody @Valid SignUp signUp) {
         log.info("[UserController] signUp --- called");
-        userService.create(request);
+        userService.create(signUp);
         return ResponseEntity.ok().build();
     }
 

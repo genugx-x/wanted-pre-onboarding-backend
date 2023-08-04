@@ -36,7 +36,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("회원가입 테스트 정성 - (이메일 '@'포함, 비밀번호 8자리)")
+    @DisplayName("회원가입 테스트 정상 - (이메일 '@'포함, 비밀번호 8자리)")
     void signUpSuccessTest() throws Exception {
         // given
         String email = "@";
@@ -48,7 +48,7 @@ class UserControllerTest {
         String json = objectMapper.writeValueAsString(signUp);
 
         // expected
-        mockMvc.perform(post("/users")
+        mockMvc.perform(post("/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isOk())
@@ -68,7 +68,7 @@ class UserControllerTest {
         String json = objectMapper.writeValueAsString(signUp);
 
         // expected
-        mockMvc.perform(post("/users")
+        mockMvc.perform(post("/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isBadRequest())
@@ -88,7 +88,47 @@ class UserControllerTest {
         String json = objectMapper.writeValueAsString(signUp);
 
         // expected
-        mockMvc.perform(post("/users")
+        mockMvc.perform(post("/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isBadRequest())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("회원가입 시 이메일 공백 요청시 실패")
+    void signUpFailTest3() throws Exception {
+        // given
+        String email = "";
+        String password = "1234567";
+        SignUp signUp = SignUp.builder()
+                .email(email)
+                .password(password)
+                .build();
+        String json = objectMapper.writeValueAsString(signUp);
+
+        // expected
+        mockMvc.perform(post("/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isBadRequest())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("회원가입 시 비밀번호 공백 요청시 실패")
+    void signUpFailTest4() throws Exception {
+        // given
+        String email = "@";
+        String password = "";
+        SignUp signUp = SignUp.builder()
+                .email(email)
+                .password(password)
+                .build();
+        String json = objectMapper.writeValueAsString(signUp);
+
+        // expected
+        mockMvc.perform(post("/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isBadRequest())
