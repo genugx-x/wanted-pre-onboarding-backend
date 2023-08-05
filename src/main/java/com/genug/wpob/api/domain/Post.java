@@ -6,30 +6,31 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Getter
 @Entity
-@Table(name = "tb_user")
+@Table(name = "tb_post")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class Post {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String email;
+    private String title;
 
+    @Lob
     @Column(nullable = false)
-    private String password;
+    private String content;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<Post> posts;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @Builder
-    public User(String email, String password) {
-        this.email = email;
-        this.password = password;
+    public Post(String title, String content, User user) {
+        this.title = title;
+        this.content = content;
+        this.user = user;
     }
 }

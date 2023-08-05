@@ -34,6 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.info("[JwtAuthenticationFilter] doFilterInternal(..) --- token={}", token);
             if (token != null && !token.equalsIgnoreCase("null")) {
                 Long userId = Long.parseLong(tokenProvider.validateAndGetSubject(token));
+                request.setAttribute("userId", userId);
                 log.info("[JwtAuthenticationFilter] doFilterInternal(..) --- userId={}", userId);
                 var authentication = new UsernamePasswordAuthenticationToken(userId, null, AuthorityUtils.NO_AUTHORITIES);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

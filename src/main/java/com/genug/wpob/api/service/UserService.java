@@ -16,7 +16,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public User create(Signup signup) {
+    public User create(final Signup signup) {
         if (userRepository.existsByEmail(signup.getEmail())) {
             throw new RuntimeException("이미 가입된 이메일입니다.");
         }
