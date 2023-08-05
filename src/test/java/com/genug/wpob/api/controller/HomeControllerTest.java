@@ -8,10 +8,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
 @SpringBootTest
@@ -22,8 +22,9 @@ class HomeControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    @DisplayName("애플리케이션 실행 정상 동작 테스트")
+    @DisplayName("애플리케이션 실행 테스트 - 성공: '/' 모든 접근 허용")
     void healthCheckTest() throws Exception {
+        // expected
         mockMvc.perform(get("/"))
                 .andExpectAll(
                         status().isOk(),

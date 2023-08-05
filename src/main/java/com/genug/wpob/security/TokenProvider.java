@@ -19,7 +19,7 @@ public class TokenProvider {
 
     // token 생성
     public String create(String subject) {
-        Date expiryDate = Date.from(Instant.now().plus(20, ChronoUnit.SECONDS));
+        Date expiryDate = Date.from(Instant.now().plus(1, ChronoUnit.HOURS));
         return Jwts.builder()
                 .signWith(secretKey)
                 .setSubject(subject)

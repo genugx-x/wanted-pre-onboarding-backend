@@ -29,7 +29,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Login login) {
+    public ResponseEntity<?> login(@RequestBody @Valid Login login) {
         log.info("[UserController] login --- called");
         User user = userService.verifyEmailAndPassword(login.getEmail(), login.getPassword());
         String token = tokenProvider.create(String.valueOf(user.getId()));
