@@ -1,6 +1,5 @@
 package com.genug.wpob.api.request;
 
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import lombok.Getter;
@@ -9,7 +8,7 @@ import org.hibernate.validator.constraints.Length;
 
 @Getter
 @Setter
-public class SignUp {
+public class Login {
 
     @Pattern(regexp = "^.*@.*$", message="이메일 형식이 올바르지 않습니다.")
     private String email;
@@ -18,7 +17,7 @@ public class SignUp {
     private String password;
 
     @Builder
-    public SignUp(String email, String password) {
+    public Login(String email, String password) {
         this.email = email;
         this.password = password;
     }
