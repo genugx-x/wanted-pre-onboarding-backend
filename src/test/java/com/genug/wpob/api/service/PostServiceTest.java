@@ -1,9 +1,11 @@
 package com.genug.wpob.api.service;
 
 import com.genug.wpob.api.domain.User;
+import com.genug.wpob.api.exception.PostNotFoundException;
 import com.genug.wpob.api.repository.PostRepository;
 import com.genug.wpob.api.repository.UserRepository;
 import com.genug.wpob.api.request.PostCreate;
+import com.genug.wpob.api.response.PostResponse;
 import com.genug.wpob.api.response.PostsResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +48,21 @@ class PostServiceTest {
         postRepository.deleteAll();
         userRepository.deleteAll();
     }
+
+    void createPosts(String email, int count) {
+        User user = userRepository.findByEmail(email).orElseThrow(TestAbortedException::new);
+        for (int i = 1; i <= count; i++) {
+            String title = "title=" + i;
+            String content = "content=" + i;
+            PostCreate postCreate = PostCreate.builder()
+                    .title(title)
+                    .content(content)
+                    .build();
+            postService.create(user.getId(), postCreate);
+        }
+    }
+
+
 
     @Test
     @DisplayName("게시글 1개 생성 테스트")
@@ -102,16 +119,7 @@ class PostServiceTest {
     void postGetListTest2() {
         // given
         String email = "post@test.com";
-        User user = userRepository.findByEmail(email).orElseThrow(TestAbortedException::new);
-        for (int i = 1; i <= 9; i++) {
-            String title = "title=" + i;
-            String content = "content=" + i;
-            PostCreate postCreate = PostCreate.builder()
-                    .title(title)
-                    .content(content)
-                    .build();
-            postService.create(user.getId(), postCreate);
-        }
+        createPosts(email, 9);
 
         // when
         final int size = 10;
@@ -124,5 +132,40 @@ class PostServiceTest {
         assertEquals(1, response.getTotalPageCount());
         assertEquals("title=9", response.getPosts().get(0).getTitle());
         assertEquals("title=1", response.getPosts().get(8).getTitle());
+    }
+
+    @Test
+    @DisplayName("특정 게시글 조회 - 정상")
+    void postGetSuccessTest() {
+        // given
+        String email = "post@test.com";
+        createPosts(email, 10);
+        PostsResponse response = postService.getList(10, 1); // order desc
+        long postId = response.getPosts().get(0).getId();
+
+        // when
+        PostResponse postResponse = postService.get(postId);
+
+        // then
+        assertNotNull(postResponse);
+        assertEquals("title=10", postResponse.getTitle());
+        assertEquals("content=10", postResponse.getContent());
+    }
+
+    @Test
+    @DisplayName("특정 게시글 조회 - 실패: 존재하지 않는 postId로 조회")
+    void postGetFailTest() {
+        // given
+        String email = "post@test.com";
+        createPosts(email, 10);
+        PostsResponse response = postService.getList(10, 1); // order desc
+        long postId = 1234;
+
+        // when
+        PostNotFoundException e = assertThrows(PostNotFoundException.class, () -> postService.get(postId));
+
+        // then
+        assertEquals(404, e.getStatusCode());
+        assertEquals("존재하지 않는 게시글입니다.", e.getMessage());
     }
 }

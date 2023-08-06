@@ -2,26 +2,24 @@ package com.genug.wpob.api.service;
 
 import com.genug.wpob.api.domain.Post;
 import com.genug.wpob.api.domain.User;
+import com.genug.wpob.api.exception.PostNotFoundException;
 import com.genug.wpob.api.repository.PostRepository;
 import com.genug.wpob.api.repository.UserRepository;
 import com.genug.wpob.api.request.PostCreate;
-import com.genug.wpob.api.request.PostSearch;
 import com.genug.wpob.api.response.PostResponse;
 import com.genug.wpob.api.response.PostsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class PostService {
 
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
+    private final UserService userSerivce;
 
     public void create(final Long userId, final PostCreate postCreate) {
-        User user = userRepository.findById(userId).orElseThrow(RuntimeException::new);
+        User user = userSerivce.findById(userId);
         Post post = Post.builder()
                 .user(user)
                 .title(postCreate.getTitle())
@@ -49,6 +47,15 @@ public class PostService {
                         .toList())
                 .totalPostCount(totalPostCount)
                 .totalPageCount(totalPageCount)
+                .build();
+    }
+
+    public PostResponse get(Long postId) {
+        Post post = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
+        return PostResponse.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .content(post.getContent())
                 .build();
     }
 

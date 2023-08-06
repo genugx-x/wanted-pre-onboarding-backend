@@ -2,7 +2,6 @@ package com.genug.wpob.api.repository;
 
 import com.genug.wpob.api.domain.Post;
 import com.genug.wpob.api.domain.QPost;
-import com.genug.wpob.api.request.PostSearch;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 
