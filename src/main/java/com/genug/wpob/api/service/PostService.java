@@ -60,8 +60,8 @@ public class PostService {
     }
 
     @Transactional
-    public void edit(Long userId, PostEdit postEdit) {
-        Post post = postRepository.findById(postEdit.getId()).orElseThrow(PostNotFoundException::new);
+    public void edit(Long userId, Long postId, PostEdit postEdit) {
+        Post post = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
         if (!userId.equals(post.getUser().getId())) { // 요청자와 작성자가 다른 경우
             throw new AuthorizationException();
         }
