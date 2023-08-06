@@ -2,24 +2,30 @@ package com.genug.wpob.api.service;
 
 import com.genug.wpob.api.domain.Post;
 import com.genug.wpob.api.domain.User;
+import com.genug.wpob.api.exception.AuthorizationException;
 import com.genug.wpob.api.exception.PostNotFoundException;
 import com.genug.wpob.api.repository.PostRepository;
 import com.genug.wpob.api.repository.UserRepository;
 import com.genug.wpob.api.request.PostCreate;
+import com.genug.wpob.api.request.PostEdit;
 import com.genug.wpob.api.response.PostResponse;
 import com.genug.wpob.api.response.PostsResponse;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Service;
+
+import java.beans.Transient;
 
 @Service
 @RequiredArgsConstructor
 public class PostService {
 
     private final PostRepository postRepository;
-    private final UserService userSerivce;
+    private final UserService userService;
 
     public void create(final Long userId, final PostCreate postCreate) {
-        User user = userSerivce.findById(userId);
+        User user = userService.findById(userId);
         Post post = Post.builder()
                 .user(user)
                 .title(postCreate.getTitle())
@@ -57,6 +63,15 @@ public class PostService {
                 .title(post.getTitle())
                 .content(post.getContent())
                 .build();
+    }
+
+    @Transactional
+    public void edit(Long userId, PostEdit postEdit) {
+        Post post = postRepository.findById(postEdit.getId()).orElseThrow(PostNotFoundException::new);
+        if (!userId.equals(post.getUser().getId())) { // 요청자와 작성자가 다른 경우
+            throw new AuthorizationException();
+        }
+        post.edit(postEdit.getTitle(), postEdit.getContent());
     }
 
 }

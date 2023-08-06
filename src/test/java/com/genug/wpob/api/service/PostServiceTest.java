@@ -1,10 +1,13 @@
 package com.genug.wpob.api.service;
 
+import com.genug.wpob.api.domain.Post;
 import com.genug.wpob.api.domain.User;
+import com.genug.wpob.api.exception.AuthorizationException;
 import com.genug.wpob.api.exception.PostNotFoundException;
 import com.genug.wpob.api.repository.PostRepository;
 import com.genug.wpob.api.repository.UserRepository;
 import com.genug.wpob.api.request.PostCreate;
+import com.genug.wpob.api.request.PostEdit;
 import com.genug.wpob.api.response.PostResponse;
 import com.genug.wpob.api.response.PostsResponse;
 import org.junit.jupiter.api.AfterEach;
@@ -61,7 +64,6 @@ class PostServiceTest {
             postService.create(user.getId(), postCreate);
         }
     }
-
 
 
     @Test
@@ -158,7 +160,6 @@ class PostServiceTest {
         // given
         String email = "post@test.com";
         createPosts(email, 10);
-        PostsResponse response = postService.getList(10, 1); // order desc
         long postId = 1234;
 
         // when
@@ -167,5 +168,71 @@ class PostServiceTest {
         // then
         assertEquals(404, e.getStatusCode());
         assertEquals("존재하지 않는 게시글입니다.", e.getMessage());
+    }
+
+    @Test
+    @DisplayName("특정 게시글 수정 - 실패: 게시글 수정 요청자와 작성자가 다른 경우 권한 없음 예외 발생")
+    void postEditFailTest() {
+        // given
+        User user1 = User.builder()
+                .email("post-author@edit.test")
+                .password("postEditTest")
+                .build();
+        userRepository.save(user1);
+        User user2 = User.builder()
+                .email("post-editor@edit.test")
+                .password("postEditTest")
+                .build();
+        userRepository.save(user2);
+        Post post = Post.builder()
+                .user(user1)
+                .title("Original title")
+                .content("Original content.")
+                .build();
+        postRepository.save(post);
+
+        // when
+        AuthorizationException e = assertThrows(AuthorizationException.class, () ->
+                postService.edit(user2.getId(), PostEdit.builder()
+                        .id(post.getId())
+                        .title(post.getTitle())
+                        .content(post.getContent())
+                        .build()));
+
+        // then
+        assertEquals(403, e.getStatusCode());
+        assertEquals("요청하신 작업을 수행할 권한이 없습니다.", e.getMessage());
+    }
+
+    @Test
+    @DisplayName("특정 게시글 수정 - 성공")
+    void postEditSuccessTest() {
+        // given
+        User user = User.builder()
+                .email("post-author@edit.test")
+                .password("postEditTest")
+                .build();
+        userRepository.save(user);
+
+        String title = "Original title";
+        String content = "Original content";
+        Post post = Post.builder()
+                .user(user)
+                .title(title)
+                .content(content)
+                .build();
+        postRepository.save(post);
+
+        // when
+        postService.edit(user.getId(), PostEdit.builder()
+                .id(post.getId())
+                .title("Edit title")
+                .content("Edit content")
+                .build());
+        Post edit = postRepository.findById(post.getId()).orElseThrow(TestAbortedException::new);
+
+        // then
+        assertNotEquals(title, edit.getTitle());
+        assertNotEquals(content, edit.getContent());
     }
 }

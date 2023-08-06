@@ -1,6 +1,7 @@
 package com.genug.wpob.api.controller;
 
 import com.genug.wpob.api.request.PostCreate;
+import com.genug.wpob.api.request.PostEdit;
 import com.genug.wpob.api.response.PostResponse;
 import com.genug.wpob.api.response.PostsResponse;
 import com.genug.wpob.api.service.PostService;
@@ -39,6 +40,14 @@ public class PostController {
         log.info("[PostController] get --- called");
         PostResponse response = postService.get(postId);
         return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping
+    public ResponseEntity<?> edit(HttpServletRequest request, @RequestBody PostEdit postEdit) {
+        log.info("[PostController] edit --- called");
+        Long userId = (Long) request.getAttribute("userId");
+        postService.edit(userId, postEdit);
+        return ResponseEntity.ok().build();
     }
 
 }

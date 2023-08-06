@@ -7,6 +7,7 @@ import com.genug.wpob.api.repository.PostRepository;
 import com.genug.wpob.api.repository.UserRepository;
 import com.genug.wpob.api.request.Login;
 import com.genug.wpob.api.request.PostCreate;
+import com.genug.wpob.api.request.PostEdit;
 import com.genug.wpob.api.response.LoginResponse;
 import com.genug.wpob.api.response.PostsResponse;
 import org.junit.jupiter.api.AfterEach;
@@ -26,8 +27,7 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -84,8 +84,34 @@ class PostControllerTest {
         return response.getToken();
     }
 
+    String login(String email, String password) throws Exception {
+        Login login = Login.builder()
+                .email(email)
+                .password(password)
+                .build();
+        String loginJson = objectMapper.writeValueAsString(login);
+
+        MvcResult result = mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson))
+                .andReturn();
+        LoginResponse response = objectMapper.readValue(result.getResponse().getContentAsString(), LoginResponse.class);
+        return response.getToken();
+    }
+
     void createPosts(int count) {
         String email = "post@test.com";
+        User user = userRepository.findByEmail(email).orElseThrow(TestAbortedException::new);
+        for (int i = 1; i <= count; i++) {
+            postRepository.save(Post.builder()
+                    .user(user)
+                    .title("title=" + i)
+                    .content("content=" + i)
+                    .build());
+        }
+    }
+
+    void createPosts(String email, int count) {
         User user = userRepository.findByEmail(email).orElseThrow(TestAbortedException::new);
         for (int i = 1; i <= count; i++) {
             postRepository.save(Post.builder()
@@ -224,5 +250,82 @@ class PostControllerTest {
                         jsonPath("$.code").value(404),
                         jsonPath("$.message").value("존재하지 않는 게시글입니다."))
                 .andDo(print());
+    }
+
+    @Test
+    @DisplayName("특정 게시글 수정 - 실패: 게시글 수정 요청자와 작성자가 다른 경우 권한 없음 예외 발생")
+    void postEditFailTest() throws Exception {
+        // given
+        User author = userRepository.findByEmail("post@test.com").orElseThrow(TestAbortedException::new);
+        Post post = postRepository.save(Post.builder()
+                .user(author)
+                .title("Original title")
+                .content("Original content.")
+                .build());
+
+        String email = "editor@edit.com";
+        String password = "12341234";
+        userRepository.save(User.builder()
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .build());
+        String token = login(email, password);
+        PostEdit postEdit = PostEdit.builder()
+                .id(post.getId())
+                .title("New title")
+                .content("New content")
+                .build();
+        String json = objectMapper.writeValueAsString(postEdit);
+
+        // expected
+        mockMvc.perform(patch("/posts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authentication", "Bearer " + token)
+                        .content(json))
+                .andExpectAll(
+                        status().isForbidden(),
+                        jsonPath("$.code").value("403"),
+                        jsonPath("$.message").value("요청하신 작업을 수행할 권한이 없습니다."))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("특정 게시글 수정 - 성공")
+    void postEditSuccessTest() throws Exception {
+        // given
+        User author = userRepository.findByEmail("post@test.com").orElseThrow(TestAbortedException::new);
+        String originalTitle = "Original title";
+        String originalContent = "Original content";
+        Post post = postRepository.save(Post.builder()
+                .user(author)
+                .title(originalTitle)
+                .content(originalContent)
+                .build());
+        String token = login();
+
+        String newTitle = "New title";
+        String newContent = "New content";
+        PostEdit postEdit = PostEdit.builder()
+                .id(post.getId())
+                .title(newTitle)
+                .content(newContent)
+                .build();
+        String json = objectMapper.writeValueAsString(postEdit);
+
+        // expected
+        mockMvc.perform(patch("/posts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authentication", "Bearer " + token)
+                        .content(json))
+                .andExpectAll(
+                        status().isOk())
+                .andDo(print());
+
+        // then
+        Post edit = postRepository.findById(post.getId()).orElseThrow(TestAbortedException::new);
+        assertNotEquals(originalTitle, edit.getTitle());
+        assertNotEquals(originalContent, edit.getContent());
+        assertEquals(newTitle, edit.getTitle());
+        assertEquals(newContent, edit.getContent());
     }
 }
