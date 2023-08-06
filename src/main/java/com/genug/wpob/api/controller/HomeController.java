@@ -13,8 +13,8 @@ public class HomeController {
 
     @GetMapping
     public ResponseEntity<?> healthCheck() {
-        String message = "The service is up and running....";
         log.info("[HomeController] healthCheck --- called");
+        String message = "The service is up and running....";
         return ResponseEntity.ok().body(message);
     }
 

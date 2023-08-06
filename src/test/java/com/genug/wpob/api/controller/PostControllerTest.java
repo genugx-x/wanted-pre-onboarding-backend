@@ -3,14 +3,12 @@ package com.genug.wpob.api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.genug.wpob.api.domain.Post;
 import com.genug.wpob.api.domain.User;
-import com.genug.wpob.api.exception.PostNotFoundException;
 import com.genug.wpob.api.repository.PostRepository;
 import com.genug.wpob.api.repository.UserRepository;
 import com.genug.wpob.api.request.Login;
 import com.genug.wpob.api.request.PostCreate;
 import com.genug.wpob.api.request.PostEdit;
 import com.genug.wpob.api.response.LoginResponse;
-import com.genug.wpob.api.response.PostsResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -272,14 +270,13 @@ class PostControllerTest {
                 .build());
         String token = login(email, password);
         PostEdit postEdit = PostEdit.builder()
-                .id(post.getId())
                 .title("New title")
                 .content("New content")
                 .build();
         String json = objectMapper.writeValueAsString(postEdit);
 
         // expected
-        mockMvc.perform(patch("/posts")
+        mockMvc.perform(patch("/posts/{postId}", post.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authentication", "Bearer " + token)
                         .content(json))
@@ -307,14 +304,13 @@ class PostControllerTest {
         String newTitle = "New title";
         String newContent = "New content";
         PostEdit postEdit = PostEdit.builder()
-                .id(post.getId())
                 .title(newTitle)
                 .content(newContent)
                 .build();
         String json = objectMapper.writeValueAsString(postEdit);
 
         // expected
-        mockMvc.perform(patch("/posts")
+        mockMvc.perform(patch("/posts/{postId}", post.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authentication", "Bearer " + token)
                         .content(json))

@@ -42,11 +42,13 @@ public class PostController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping
-    public ResponseEntity<?> edit(HttpServletRequest request, @RequestBody PostEdit postEdit) {
+    @PatchMapping("/{postId}")
+    public ResponseEntity<?> edit(HttpServletRequest request,
+                                  @PathVariable Long postId,
+                                  @RequestBody PostEdit postEdit) {
         log.info("[PostController] edit --- called");
         Long userId = (Long) request.getAttribute("userId");
-        postService.edit(userId, postEdit);
+        postService.edit(userId, postId, postEdit);
         return ResponseEntity.ok().build();
     }
 

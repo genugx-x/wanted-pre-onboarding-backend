@@ -193,8 +193,7 @@ class PostServiceTest {
 
         // when
         AuthorizationException e = assertThrows(AuthorizationException.class, () ->
-                postService.edit(user2.getId(), PostEdit.builder()
-                        .id(post.getId())
+                postService.edit(user2.getId(), post.getId(), PostEdit.builder()
                         .title(post.getTitle())
                         .content(post.getContent())
                         .build()));
@@ -224,8 +223,7 @@ class PostServiceTest {
         postRepository.save(post);
 
         // when
-        postService.edit(user.getId(), PostEdit.builder()
-                .id(post.getId())
+        postService.edit(user.getId(), post.getId(), PostEdit.builder()
                 .title("Edit title")
                 .content("Edit content")
                 .build());
