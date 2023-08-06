@@ -1,6 +1,8 @@
 package com.genug.wpob.api.service;
 
 import com.genug.wpob.api.domain.User;
+import com.genug.wpob.api.exception.LoginFailException;
+import com.genug.wpob.api.exception.UserNotFoundException;
 import com.genug.wpob.api.repository.UserRepository;
 import com.genug.wpob.api.request.Signup;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,10 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    public User findById(final Long id) {
+        return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+    }
+
     public User create(final Signup signup) {
         if (userRepository.existsByEmail(signup.getEmail())) {
             throw new RuntimeException("이미 가입된 이메일입니다.");
@@ -30,10 +36,10 @@ public class UserService {
     }
 
     public User verifyEmailAndPassword(final String email, final String password) {
-        User user = userRepository.findByEmail(email).orElseThrow(RuntimeException::new);
+        User user = userRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
         if (passwordEncoder.matches(password, user.getPassword())) {
             return user;
         }
-        throw new RuntimeException("로그인 실패");
+        throw new LoginFailException();
     }
 }

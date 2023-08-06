@@ -29,4 +29,3 @@ Content-Type: application/json;charset=UTF-8
   "content": "posts.http 게시글 생성 요청 내용입니다."
 }
 
-###

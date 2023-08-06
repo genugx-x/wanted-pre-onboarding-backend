@@ -8,6 +8,7 @@ import com.genug.wpob.api.repository.UserRepository;
 import com.genug.wpob.api.request.Login;
 import com.genug.wpob.api.request.PostCreate;
 import com.genug.wpob.api.response.LoginResponse;
+import com.genug.wpob.api.response.PostsResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,6 +21,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import java.util.List;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.*;
@@ -62,6 +65,35 @@ class PostControllerTest {
     void cleanUp() {
         postRepository.deleteAll();
         userRepository.deleteAll();
+    }
+
+    String login() throws Exception {
+        String email = "post@test.com";
+        String password = "pOStTEstCom";
+        Login login = Login.builder()
+                .email(email)
+                .password(password)
+                .build();
+        String loginJson = objectMapper.writeValueAsString(login);
+
+        MvcResult result = mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson))
+                .andReturn();
+        LoginResponse response = objectMapper.readValue(result.getResponse().getContentAsString(), LoginResponse.class);
+        return response.getToken();
+    }
+
+    void createPosts(int count) {
+        String email = "post@test.com";
+        User user = userRepository.findByEmail(email).orElseThrow(TestAbortedException::new);
+        for (int i = 1; i <= count; i++) {
+            postRepository.save(Post.builder()
+                    .user(user)
+                    .title("title=" + i)
+                    .content("content=" + i)
+                    .build());
+        }
     }
 
     @Test
@@ -155,32 +187,42 @@ class PostControllerTest {
                 .andDo(print());
     }
 
-    private String login() throws Exception {
-        String email = "post@test.com";
-        String password = "pOStTEstCom";
-        Login login = Login.builder()
-                .email(email)
-                .password(password)
-                .build();
-        String loginJson = objectMapper.writeValueAsString(login);
+    @Test
+    @DisplayName("특정 게시글 조회 - 정상")
+    void postGetSuccessTest() throws Exception {
+        // given
+        String token = login();
+        createPosts(20);
+        List<Post> posts = postRepository.getList(10, 1);
+        long postId = posts.get(0).getId();
 
-        MvcResult result = mockMvc.perform(post("/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(loginJson))
-                .andReturn();
-        LoginResponse response = objectMapper.readValue(result.getResponse().getContentAsString(), LoginResponse.class);
-        return response.getToken();
+        // expected
+        mockMvc.perform(get("/posts/{postId}", postId)
+                        .header("Authentication", "Bearer " + token))
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.id").value(postId),
+                        jsonPath("$.title").value("title=20"),
+                        jsonPath("$.content").value("content=20"))
+                .andDo(print());
     }
 
-    private void createPosts(int count) {
-        String email = "post@test.com";
-        User user = userRepository.findByEmail(email).orElseThrow(TestAbortedException::new);
-        for (int i = 1; i <= count; i++) {
-            postRepository.save(Post.builder()
-                    .user(user)
-                    .title("title=" + i)
-                    .content("content=" + i)
-                    .build());
-        }
+    @Test
+    @DisplayName("특정 게시글 조회 - 존재 하지 않는 postId 요청 시 예외 반환")
+    void postGetFailTest() throws Exception {
+        // given
+        String token = login();
+        createPosts(5);
+        List<Post> posts = postRepository.getList(10, 1);
+        long postId = 9999;
+
+        // expected
+        mockMvc.perform(get("/posts/{postId}", postId)
+                        .header("Authentication", "Bearer " + token))
+                .andExpectAll(
+                        status().isNotFound(),
+                        jsonPath("$.code").value(404),
+                        jsonPath("$.message").value("존재하지 않는 게시글입니다."))
+                .andDo(print());
     }
 }

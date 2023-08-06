@@ -1,18 +1,14 @@
 package com.genug.wpob.api.controller;
 
 import com.genug.wpob.api.request.PostCreate;
-import com.genug.wpob.api.request.PostSearch;
 import com.genug.wpob.api.response.PostResponse;
 import com.genug.wpob.api.response.PostsResponse;
 import com.genug.wpob.api.service.PostService;
-import com.genug.wpob.security.TokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -38,5 +34,11 @@ public class PostController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{postId}")
+    public ResponseEntity<?> get(@PathVariable Long postId) {
+        log.info("[PostController] get --- called");
+        PostResponse response = postService.get(postId);
+        return ResponseEntity.ok(response);
+    }
 
 }

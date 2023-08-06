@@ -2,26 +2,17 @@ package com.genug.wpob.api.request;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.bind.DefaultValue;
-
-import static java.lang.Math.max;
 
 @Getter
-@Setter
 public class PostSearch {
-
-    private Integer page = 1;
-    private Integer size;
+    private Long id;
+    private String title;
+    private String content;
 
     @Builder
-    public PostSearch(Integer page, Integer size) {
-        this.page = page;
-        this.size = size;
+    public PostSearch(Long id, String title, String content) {
+        this.id = id;
+        this.title = title;
+        this.content = content;
     }
-
-    public long getOffset() {
-        return (long) (max(1, this.page) - 1) * size;
-    }
-
 }
