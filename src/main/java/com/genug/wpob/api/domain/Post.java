@@ -33,4 +33,9 @@ public class Post {
         this.content = content;
         this.user = user;
     }
+
+    public void edit(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
 }
