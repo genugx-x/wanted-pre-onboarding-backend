@@ -3,6 +3,7 @@ package com.genug.wpob.api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.genug.wpob.api.domain.Post;
 import com.genug.wpob.api.domain.User;
+import com.genug.wpob.api.exception.PostNotFoundException;
 import com.genug.wpob.api.repository.PostRepository;
 import com.genug.wpob.api.repository.UserRepository;
 import com.genug.wpob.api.request.Login;
@@ -327,5 +328,62 @@ class PostControllerTest {
         assertNotEquals(originalContent, edit.getContent());
         assertEquals(newTitle, edit.getTitle());
         assertEquals(newContent, edit.getContent());
+    }
+
+    @Test
+    @DisplayName("특정 게시글 삭제 - 실패: 게시글 수정 요청자와 작성자가 다른 경우 권한 없음 예외 발생")
+    void postDeleteFailTest() throws Exception {
+        // given
+        User author = userRepository.findByEmail("post@test.com").orElseThrow(TestAbortedException::new);
+        Post post = postRepository.save(Post.builder()
+                .user(author)
+                .title("Original title")
+                .content("Original content.")
+                .build());
+
+        String email = "editor@delete.com";
+        String password = "12341234";
+        userRepository.save(User.builder()
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .build());
+        String token = login(email, password);
+
+        // expected
+        mockMvc.perform(delete("/posts/{postId}", post.getId())
+                        .header("Authentication", "Bearer " + token))
+                .andExpectAll(
+                        status().isForbidden(),
+                        jsonPath("$.code").value("403"),
+                        jsonPath("$.message").value("요청하신 작업을 수행할 권한이 없습니다."))
+                .andDo(print());
+
+        // then
+        assertTrue(postRepository.existsById(post.getId()));
+        assertEquals(1, postRepository.count());
+    }
+
+    @Test
+    @DisplayName("특정 게시글 삭제 - 성공")
+    void postDeleteSuccessTest() throws Exception {
+        // given
+        User author = userRepository.findByEmail("post@test.com").orElseThrow(TestAbortedException::new);
+        Post post = postRepository.save(Post.builder()
+                .user(author)
+                .title("title")
+                .content("conetent")
+                .build());
+        String token = login();
+
+        // expected
+        mockMvc.perform(delete("/posts/{postId}", post.getId())
+                        .header("Authentication", "Bearer " + token))
+                .andExpectAll(
+                        status().isOk())
+                .andDo(print());
+
+        // then
+        assertFalse(postRepository.existsById(post.getId()));
+        assertEquals(0, postRepository.count());
     }
 }
