@@ -36,13 +36,7 @@ public class PostService {
 
     public PostsResponse getList(int size, int page) {
         long totalPostCount = postRepository.count();
-        int totalPageCount = 0;
-        if (totalPostCount > size) {
-            totalPageCount += (int) totalPostCount / size;
-            totalPageCount += totalPostCount % size > 0 ? 1 : 0;
-        } else {
-            totalPageCount++;
-        }
+        int totalPageCount = countTotalPage(size, totalPostCount);
         return PostsResponse.builder()
                 .posts(postRepository.getList(size, page)
                         .stream()
@@ -72,6 +66,25 @@ public class PostService {
             throw new AuthorizationException();
         }
         post.edit(postEdit.getTitle(), postEdit.getContent());
+    }
+
+    public void delete(Long userId, Long postId) {
+        Post post = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
+        if (!userId.equals(post.getUser().getId())) { // 요청자와 작성자가 다른 경우
+            throw new AuthorizationException();
+        }
+        postRepository.delete(post);
+    }
+
+    private int countTotalPage(int size, long totalPostCount) {
+        int totalPageCount = 0;
+        if (totalPostCount > size) {
+            totalPageCount += (int) totalPostCount / size;
+            totalPageCount += totalPostCount % size > 0 ? 1 : 0;
+        } else {
+            totalPageCount++;
+        }
+        return totalPageCount;
     }
 
 }

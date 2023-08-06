@@ -50,4 +50,12 @@ public class PostController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<?> delete(HttpServletRequest request, @PathVariable Long postId) {
+        log.info("[PostController] delete --- called");
+        Long userId = (Long) request.getAttribute("userId");
+        postService.delete(userId, postId);
+        return ResponseEntity.ok().build();
+    }
+
 }

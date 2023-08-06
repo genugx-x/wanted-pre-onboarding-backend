@@ -235,4 +235,61 @@ class PostServiceTest {
         assertNotEquals(title, edit.getTitle());
         assertNotEquals(content, edit.getContent());
     }
+
+    @Test
+    @DisplayName("특정 게시글 삭제 - 실패: 게시글 삭제 요청자와 작성자가 다른 경우 권한 없음 예외 발생")
+    void postDeleteFailTest() {
+        // given
+        User user1 = User.builder()
+                .email("post-author@edit.test")
+                .password("postEditTest")
+                .build();
+        userRepository.save(user1);
+        User user2 = User.builder()
+                .email("post-delete@delete.test")
+                .password("postDeleteTest")
+                .build();
+        userRepository.save(user2);
+        Post post = Post.builder()
+                .user(user1)
+                .title("title")
+                .content("content")
+                .build();
+        postRepository.save(post);
+
+        // when
+        AuthorizationException e = assertThrows(AuthorizationException.class, () ->
+                postService.delete(user2.getId(), post.getId()));
+
+        // then
+        assertEquals(403, e.getStatusCode());
+        assertEquals("요청하신 작업을 수행할 권한이 없습니다.", e.getMessage());
+        assertTrue(postRepository.existsById(post.getId()));
+        assertEquals(1, postRepository.count());
+    }
+
+    @Test
+    @DisplayName("특정 게시글 삭제 - 성공")
+    void postDeleteSuccessTest() {
+        // given
+        User user = User.builder()
+                .email("post-author@edit.test")
+                .password("postEditTest")
+                .build();
+        userRepository.save(user);
+        Post post = Post.builder()
+                .user(user)
+                .title("title")
+                .content("content")
+                .build();
+        postRepository.save(post);
+
+        //when
+        postService.delete(user.getId(), post.getId());
+
+        // then
+        assertThrows(PostNotFoundException.class, () -> postService.get(post.getId()));
+        assertFalse(postRepository.existsById(post.getId()));
+        assertEquals(0, postRepository.count());
+    }
 }
