@@ -170,7 +170,7 @@ API 요구사항과 예외 발생 상황을 고려하여 각각의 엔드포인�
         - page : 조회 하려는 페이지 위치
     - 요청
       ```http request
-      POST http://localhost:8080/posts?size=10&page=1
+      GETs http://localhost:8080/posts?size=10&page=1
       Authentication: Bearer {JWT Token}
     - 응답:
         - 성공
@@ -206,7 +206,7 @@ API 요구사항과 예외 발생 상황을 고려하여 각각의 엔드포인�
       - postId: 게시글 ID 
     - 요청
       ```http request
-      POST http://localhost:8080/posts/1
+      GET http://localhost:8080/posts/1
       Authentication: Bearer {JWT Token}
     - 응답:
         - 성공
