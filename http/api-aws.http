@@ -1,0 +1,57 @@
+### 사용자 회원가입
+
+POST http://wpob.ap-northeast-2.elasticbeanstalk.com/auth/signup
+Content-Type: application/json
+
+{
+  "email": "genug@gmail.com",
+  "password": "1z2x3c4v"
+}
+
+### 사용자 로그인
+
+POST http://wpob.ap-northeast-2.elasticbeanstalk.com/auth/login
+Content-Type: application/json
+
+{
+  "email": "genug@gmail.com",
+  "password": "1z2x3c4v"
+}
+
+### 게시글 생성
+
+POST http://wpob.ap-northeast-2.elasticbeanstalk.com/posts
+Content-Type: application/json
+Authentication: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyIiwiaXNzIjoiV1BPQiIsImlhdCI6MTY5MTY1MjMzNywiZXhwIjoxNjkxNjU1OTM3fQ.9fNdYCUmfxyQdP_YwBPIcsFi-Ua4aLyfJxoGRbhjxOg
+
+{
+  "title": "aws 서버에 테스트 글을 생성합니다.",
+  "content": "내용도 작성해 줍니다."
+}
+
+### 게시글 목록 조회
+
+GET http://wpob.ap-northeast-2.elasticbeanstalk.com/posts?size=10&page=1
+Authentication: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyIiwiaXNzIjoiV1BPQiIsImlhdCI6MTY5MTY1MjMzNywiZXhwIjoxNjkxNjU1OTM3fQ.9fNdYCUmfxyQdP_YwBPIcsFi-Ua4aLyfJxoGRbhjxOg
+
+### 특정 게시글 조회
+
+GET http://wpob.ap-northeast-2.elasticbeanstalk.com/posts/3
+Authentication: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyIiwiaXNzIjoiV1BPQiIsImlhdCI6MTY5MTY1MjMzNywiZXhwIjoxNjkxNjU1OTM3fQ.9fNdYCUmfxyQdP_YwBPIcsFi-Ua4aLyfJxoGRbhjxOg
+
+### 특정 게시글 수정
+
+PATCH http://wpob.ap-northeast-2.elasticbeanstalk.com/posts
+Content-Type: application/json
+Authentication: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyIiwiaXNzIjoiV1BPQiIsImlhdCI6MTY5MTY1MjMzNywiZXhwIjoxNjkxNjU1OTM3fQ.9fNdYCUmfxyQdP_YwBPIcsFi-Ua4aLyfJxoGRbhjxOg
+
+{
+  "id": 3,
+  "title": "aws 서버에 작성한 테스트 글을 수정합니다.",
+  "content": "수정된 내용입니다."
+}
+
+### 특정 게시글 삭제
+
+DELETE http://wpob.ap-northeast-2.elasticbeanstalk.com/posts/3
+Authentication: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyIiwiaXNzIjoiV1BPQiIsImlhdCI6MTY5MTY1MjMzNywiZXhwIjoxNjkxNjU1OTM3fQ.9fNdYCUmfxyQdP_YwBPIcsFi-Ua4aLyfJxoGRbhjxOg
